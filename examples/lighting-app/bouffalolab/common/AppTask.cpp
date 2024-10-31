@@ -203,6 +203,8 @@ void AppTask::AppTaskMain(void * pvParameter)
 
             if (APP_EVENT_BTN_SHORT & appEvent)
             {
+                chip::RendezvousInformationFlags rendezvousMode(chip::RendezvousInformationFlag::kBLE);
+                PrintOnboardingCodes(rendezvousMode);
                 if (Server::GetInstance().GetFabricTable().FabricCount())
                 {
                     Clusters::OnOff::Attributes::OnOff::Get(GetAppTask().GetEndpointId(), &onoff);

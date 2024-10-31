@@ -55,7 +55,7 @@ declare_args() {
   module_type = "BL706C-22"
   baudrate = 2000000
 
-  enable_cdc_module = false
+  enable_cdc_module = true
   config_cache_size = 16384
   enable_psram = true
 }
