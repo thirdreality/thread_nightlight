@@ -300,7 +300,23 @@ void AppTask::LightingUpdate(app_event_t status)
         {
 #if defined(BL706_NIGHT_LIGHT) || defined(BL602_NIGHT_LIGHT)
             /** show yellow to indicate not-provision state for extended color light */
-            sLightLED.SetColor(254, 35, 254);
+            static bool first_time = false;
+            if(first_time) return;
+            first_time = true;
+            ChipLogProgress(NotSpecified,"Yellow*3, and White on");
+            sLightLED.SetColor(84, 35, 254);
+            vTaskDelay(250);
+            sLightLED.SetColor(0, 35, 254);
+            vTaskDelay(250);
+            sLightLED.SetColor(84, 35, 254);
+            vTaskDelay(250);
+            sLightLED.SetColor(0, 35, 254);
+            vTaskDelay(250);
+            sLightLED.SetColor(84, 35, 254);
+            vTaskDelay(250);
+            sLightLED.SetColor(0, 35, 254);
+            vTaskDelay(250);
+            sLightLED.SetColor(84, 0, 0);
 #else
             /** show 30% brightness to indicate not-provision state */
             sLightLED.SetLevel(25);
