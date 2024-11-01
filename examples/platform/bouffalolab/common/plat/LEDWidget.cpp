@@ -124,3 +124,10 @@ void ColorLEDWidget::SetColor(uint8_t level, uint8_t hue, uint8_t sat)
     light_s = sat;
     mOnoff  = light_v > 0;
 }
+
+void ColorLEDWidget::SetLevelTemperature(uint8_t level, uint16_t temperature)
+{
+#ifdef MAX_PWM_CHANNEL
+    set_level_temperature(level, temperature);
+#endif
+}

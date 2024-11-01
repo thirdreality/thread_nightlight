@@ -38,6 +38,16 @@ using namespace ::chip::DeviceLayer;
 #define APP_LIGHT_ENDPOINT_ID 1
 #define APP_REBOOT_RESET_COUNT 3
 #define APP_REBOOT_RESET_COUNT_KEY "app_reset_cnt"
+#define APP_3R_LOCAL_STATE_KEY "local_state"
+#define CK_IIC_SLAVE_ADDR 0x53
+#define APP_PIR_SENSOR_DETECTED_TIME_MS (20000) //30000
+
+#define LUX_10                 10
+#define LUX_THRESTHOD_0_10     3
+#define LUX_100                100
+#define LUX_THRESTHOD_10_100   5
+#define LUX_200                200
+#define LUX_THRESTHOD_100_200  10
 
 // Application-defined error codes in the CHIP_ERROR space.
 #define APP_ERROR_EVENT_QUEUE_FAILED CHIP_APPLICATION_ERROR(0x01)
@@ -54,6 +64,23 @@ class AppTask
 public:
     friend AppTask & GetAppTask(void);
 
+    union local_State_Union_t{
+        uint32_t state;
+        struct {
+            uint8_t onoff:  1;
+            uint8_t motion: 1;
+            uint8_t light:  1;
+            uint8_t pair:   1;
+
+            uint8_t reset:  2;
+            uint8_t resv:   2;
+
+            uint8_t lvl:    8;
+            uint8_t hue:    8;
+            uint8_t sat:    8;
+        } byte;
+    };
+
     enum app_event_t
     {
         APP_EVENT_NONE = 0x00000000,
@@ -67,7 +94,8 @@ public:
         APP_EVENT_LIGHTING_ONOFF = 0x00010000,
         APP_EVENT_LIGHTING_LEVEL = 0x00020000,
         APP_EVENT_LIGHTING_COLOR = 0x00040000,
-        APP_EVENT_LIGHTING_MASK  = APP_EVENT_LIGHTING_ONOFF | APP_EVENT_LIGHTING_LEVEL | APP_EVENT_LIGHTING_COLOR,
+        APP_EVENT_LIGHTING_PIR   = 0x00100000,
+        APP_EVENT_LIGHTING_MASK  = APP_EVENT_LIGHTING_ONOFF | APP_EVENT_LIGHTING_LEVEL | APP_EVENT_LIGHTING_COLOR | APP_EVENT_LIGHTING_PIR,
 
         APP_EVENT_IDENTIFY_START    = 0x01000000,
         APP_EVENT_IDENTIFY_IDENTIFY = 0x02000000,
@@ -95,6 +123,9 @@ public:
     static void IdentifyStopHandler(Identify *);
     static void IdentifyHandleOp(app_event_t event);
 
+    local_State_Union_t local_NL;
+    bool pirSensorDisable;
+
 private:
     friend void StartAppTask(void);
     friend PlatformManagerImpl;
@@ -111,6 +142,16 @@ private:
     static void CancelTimer(void);
     static void TimerEventHandler(app_event_t event);
     static void TimerCallback(TimerHandle_t xTimer);
+    void get_local_state(local_State_Union_t *nl_state);
+    void set_local_state(local_State_Union_t *nl_state);
+    void save_color(uint8_t level, uint8_t hue, uint8_t sat);
+
+    void InitLightSensor();
+    void InitLightSensorI2C();
+    int GetLightSensorValue();
+    uint32_t lightSensorValue;
+    uint32_t curLuxValue;
+    uint64_t pirSensorDeteched;
 
 #ifdef BOOT_PIN_RESET
     static void ButtonInit(void);

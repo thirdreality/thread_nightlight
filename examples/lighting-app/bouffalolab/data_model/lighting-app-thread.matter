@@ -974,6 +974,67 @@ cluster OtaSoftwareUpdateRequestor = 42 {
   command AnnounceOTAProvider(AnnounceOTAProviderRequest): DefaultSuccess = 0;
 }
 
+/** Nodes should be expected to be deployed to any and all regions of the world. These global regions
+      may have differing common languages, units of measurements, and numerical formatting
+      standards. As such, Nodes that visually or audibly convey information need a mechanism by which
+      they can be configured to use a user’s preferred language, units, etc */
+cluster LocalizationConfiguration = 43 {
+  revision 1; // NOTE: Default/not specifically set
+
+  attribute access(write: manage) char_string<35> activeLocale = 0;
+  readonly attribute char_string supportedLocales[] = 1;
+  readonly attribute command_id generatedCommandList[] = 65528;
+  readonly attribute command_id acceptedCommandList[] = 65529;
+  readonly attribute event_id eventList[] = 65530;
+  readonly attribute attrib_id attributeList[] = 65531;
+  readonly attribute bitmap32 featureMap = 65532;
+  readonly attribute int16u clusterRevision = 65533;
+}
+
+/** Nodes should be expected to be deployed to any and all regions of the world. These global regions
+      may have differing preferences for how dates and times are conveyed. As such, Nodes that visually
+      or audibly convey time information need a mechanism by which they can be configured to use a
+      user’s preferred format. */
+cluster TimeFormatLocalization = 44 {
+  revision 1; // NOTE: Default/not specifically set
+
+  enum CalendarTypeEnum : enum8 {
+    kBuddhist = 0;
+    kChinese = 1;
+    kCoptic = 2;
+    kEthiopian = 3;
+    kGregorian = 4;
+    kHebrew = 5;
+    kIndian = 6;
+    kIslamic = 7;
+    kJapanese = 8;
+    kKorean = 9;
+    kPersian = 10;
+    kTaiwanese = 11;
+    kUseActiveLocale = 255;
+  }
+
+  enum HourFormatEnum : enum8 {
+    k12hr = 0;
+    k24hr = 1;
+    kUseActiveLocale = 255;
+  }
+
+  bitmap Feature : bitmap32 {
+    kCalendarFormat = 0x1;
+  }
+
+  attribute access(write: manage) HourFormatEnum hourFormat = 0;
+  attribute access(write: manage) optional CalendarTypeEnum activeCalendarType = 1;
+  readonly attribute optional CalendarTypeEnum supportedCalendarTypes[] = 2;
+  readonly attribute command_id generatedCommandList[] = 65528;
+  readonly attribute command_id acceptedCommandList[] = 65529;
+  readonly attribute event_id eventList[] = 65530;
+  readonly attribute attrib_id attributeList[] = 65531;
+  readonly attribute bitmap32 featureMap = 65532;
+  readonly attribute int16u clusterRevision = 65533;
+}
+
 /** This cluster is used to manage global aspects of the Commissioning flow. */
 cluster GeneralCommissioning = 48 {
   revision 1; // NOTE: Default/not specifically set
@@ -1627,6 +1688,62 @@ cluster ThreadNetworkDiagnostics = 53 {
   command access(invoke: manage) ResetCounts(): DefaultSuccess = 0;
 }
 
+/** This cluster exposes interactions with a switch device, for the purpose of using those interactions by other devices.
+Two types of switch devices are supported: latching switch (e.g. rocker switch) and momentary switch (e.g. push button), distinguished with their feature flags.
+Interactions with the switch device are exposed as attributes (for the latching switch) and as events (for both types of switches). An interested party MAY subscribe to these attributes/events and thus be informed of the interactions, and can perform actions based on this, for example by sending commands to perform an action such as controlling a light or a window shade. */
+cluster Switch = 59 {
+  revision 2;
+
+  bitmap Feature : bitmap32 {
+    kLatchingSwitch = 0x1;
+    kMomentarySwitch = 0x2;
+    kMomentarySwitchRelease = 0x4;
+    kMomentarySwitchLongPress = 0x8;
+    kMomentarySwitchMultiPress = 0x10;
+    kActionSwitch = 0x20;
+  }
+
+  info event SwitchLatched = 0 {
+    int8u newPosition = 0;
+  }
+
+  info event InitialPress = 1 {
+    int8u newPosition = 0;
+  }
+
+  info event LongPress = 2 {
+    int8u newPosition = 0;
+  }
+
+  info event ShortRelease = 3 {
+    int8u previousPosition = 0;
+  }
+
+  info event LongRelease = 4 {
+    int8u previousPosition = 0;
+  }
+
+  info event MultiPressOngoing = 5 {
+    int8u newPosition = 0;
+    int8u currentNumberOfPressesCounted = 1;
+  }
+
+  info event MultiPressComplete = 6 {
+    int8u previousPosition = 0;
+    int8u totalNumberOfPressesCounted = 1;
+  }
+
+  readonly attribute int8u numberOfPositions = 0;
+  readonly attribute int8u currentPosition = 1;
+  readonly attribute optional int8u multiPressMax = 2;
+  readonly attribute command_id generatedCommandList[] = 65528;
+  readonly attribute command_id acceptedCommandList[] = 65529;
+  readonly attribute event_id eventList[] = 65530;
+  readonly attribute attrib_id attributeList[] = 65531;
+  readonly attribute bitmap32 featureMap = 65532;
+  readonly attribute int16u clusterRevision = 65533;
+}
+
 /** Commands to trigger a Node to allow a new Administrator to commission it. */
 cluster AdministratorCommissioning = 60 {
   revision 1; // NOTE: Default/not specifically set
@@ -2246,10 +2363,117 @@ cluster ColorControl = 768 {
   command StepColorTemperature(StepColorTemperatureRequest): DefaultSuccess = 76;
 }
 
+/** Attributes and commands for configuring the measurement of illuminance, and reporting illuminance measurements. */
+cluster IlluminanceMeasurement = 1024 {
+  revision 3;
+
+  enum LightSensorTypeEnum : enum8 {
+    kPhotodiode = 0;
+    kCMOS = 1;
+  }
+
+  readonly attribute nullable int16u measuredValue = 0;
+  readonly attribute nullable int16u minMeasuredValue = 1;
+  readonly attribute nullable int16u maxMeasuredValue = 2;
+  readonly attribute optional int16u tolerance = 3;
+  readonly attribute optional nullable LightSensorTypeEnum lightSensorType = 4;
+  readonly attribute command_id generatedCommandList[] = 65528;
+  readonly attribute command_id acceptedCommandList[] = 65529;
+  readonly attribute event_id eventList[] = 65530;
+  readonly attribute attrib_id attributeList[] = 65531;
+  readonly attribute bitmap32 featureMap = 65532;
+  readonly attribute int16u clusterRevision = 65533;
+}
+
+/** The server cluster provides an interface to occupancy sensing functionality based on one or more sensing modalities, including configuration and provision of notifications of occupancy status. */
+cluster OccupancySensing = 1030 {
+  revision 5;
+
+  enum OccupancySensorTypeEnum : enum8 {
+    kPIR = 0;
+    kUltrasonic = 1;
+    kPIRAndUltrasonic = 2;
+    kPhysicalContact = 3;
+  }
+
+  bitmap Feature : bitmap32 {
+    kOther = 0x1;
+    kPassiveInfrared = 0x2;
+    kUltrasonic = 0x4;
+    kPhysicalContact = 0x8;
+    kActiveInfrared = 0x10;
+    kRadar = 0x20;
+    kRFSensing = 0x40;
+    kVision = 0x80;
+  }
+
+  bitmap OccupancyBitmap : bitmap8 {
+    kOccupied = 0x1;
+  }
+
+  bitmap OccupancySensorTypeBitmap : bitmap8 {
+    kPIR = 0x1;
+    kUltrasonic = 0x2;
+    kPhysicalContact = 0x4;
+  }
+
+  struct HoldTimeLimitsStruct {
+    int16u holdTimeMin = 0;
+    int16u holdTimeMax = 1;
+    int16u holdTimeDefault = 2;
+  }
+
+  info event OccupancyChanged = 0 {
+    OccupancyBitmap occupancy = 0;
+  }
+
+  readonly attribute OccupancyBitmap occupancy = 0;
+  readonly attribute OccupancySensorTypeEnum occupancySensorType = 1;
+  readonly attribute OccupancySensorTypeBitmap occupancySensorTypeBitmap = 2;
+  attribute access(write: manage) optional int16u holdTime = 3;
+  readonly attribute optional HoldTimeLimitsStruct holdTimeLimits = 4;
+  attribute access(write: manage) optional int16u PIROccupiedToUnoccupiedDelay = 16;
+  attribute access(write: manage) optional int16u PIRUnoccupiedToOccupiedDelay = 17;
+  attribute access(write: manage) optional int8u PIRUnoccupiedToOccupiedThreshold = 18;
+  attribute access(write: manage) optional int16u ultrasonicOccupiedToUnoccupiedDelay = 32;
+  attribute access(write: manage) optional int16u ultrasonicUnoccupiedToOccupiedDelay = 33;
+  attribute access(write: manage) optional int8u ultrasonicUnoccupiedToOccupiedThreshold = 34;
+  attribute access(write: manage) optional int16u physicalContactOccupiedToUnoccupiedDelay = 48;
+  attribute access(write: manage) optional int16u physicalContactUnoccupiedToOccupiedDelay = 49;
+  attribute access(write: manage) optional int8u physicalContactUnoccupiedToOccupiedThreshold = 50;
+  readonly attribute command_id generatedCommandList[] = 65528;
+  readonly attribute command_id acceptedCommandList[] = 65529;
+  readonly attribute event_id eventList[] = 65530;
+  readonly attribute attrib_id attributeList[] = 65531;
+  readonly attribute bitmap32 featureMap = 65532;
+  readonly attribute int16u clusterRevision = 65533;
+}
+
 endpoint 0 {
   device type ma_rootdevice = 22, version 1;
 
   binding cluster OtaSoftwareUpdateProvider;
+
+  server cluster Groups {
+    ram      attribute nameSupport;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    ram      attribute featureMap default = 0;
+    ram      attribute clusterRevision default = 4;
+
+    handle command AddGroup;
+    handle command AddGroupResponse;
+    handle command ViewGroupResponse;
+    handle command ViewGroup;
+    handle command GetGroupMembershipResponse;
+    handle command GetGroupMembership;
+    handle command RemoveGroup;
+    handle command RemoveGroupResponse;
+    handle command RemoveAllGroups;
+    handle command AddGroupIfIdentifying;
+  }
 
   server cluster Descriptor {
     callback attribute deviceTypeList;
@@ -2314,6 +2538,27 @@ endpoint 0 {
     ram      attribute clusterRevision default = 1;
 
     handle command AnnounceOTAProvider;
+  }
+
+  server cluster LocalizationConfiguration {
+    ram      attribute activeLocale;
+    callback attribute supportedLocales;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    ram      attribute featureMap default = 0;
+    ram      attribute clusterRevision default = 1;
+  }
+
+  server cluster TimeFormatLocalization {
+    ram      attribute hourFormat;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    ram      attribute featureMap default = 0;
+    ram      attribute clusterRevision default = 1;
   }
 
   server cluster GeneralCommissioning {
@@ -2461,6 +2706,17 @@ endpoint 0 {
     callback attribute operationalDatasetComponents;
     callback attribute activeNetworkFaultsList;
     ram      attribute featureMap default = 0x000F;
+    ram      attribute clusterRevision default = 2;
+  }
+
+  server cluster Switch {
+    ram      attribute numberOfPositions default = 2;
+    ram      attribute currentPosition;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    ram      attribute featureMap default = 0;
     ram      attribute clusterRevision default = 2;
   }
 
@@ -2675,6 +2931,92 @@ endpoint 1 {
     handle command StopMoveStep;
     handle command MoveColorTemperature;
     handle command StepColorTemperature;
+  }
+}
+endpoint 2 {
+  device type ma_lightsensor = 262, version 1;
+
+
+  server cluster Identify {
+    ram      attribute identifyTime default = 0x0;
+    ram      attribute identifyType default = 0x00;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    ram      attribute featureMap default = 0;
+    ram      attribute clusterRevision default = 4;
+
+    handle command Identify;
+    handle command TriggerEffect;
+  }
+
+  server cluster Descriptor {
+    callback attribute deviceTypeList;
+    callback attribute serverList;
+    callback attribute clientList;
+    callback attribute partsList;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    callback attribute featureMap;
+    callback attribute clusterRevision;
+  }
+
+  server cluster IlluminanceMeasurement {
+    ram      attribute measuredValue default = 0x0000;
+    ram      attribute minMeasuredValue;
+    ram      attribute maxMeasuredValue;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    ram      attribute featureMap default = 0;
+    ram      attribute clusterRevision default = 3;
+  }
+}
+endpoint 3 {
+  device type ma_occupancysensor = 263, version 1;
+
+
+  server cluster Identify {
+    ram      attribute identifyTime default = 0x0;
+    ram      attribute identifyType default = 0x00;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    ram      attribute featureMap default = 0;
+    ram      attribute clusterRevision default = 4;
+
+    handle command Identify;
+    handle command TriggerEffect;
+  }
+
+  server cluster Descriptor {
+    callback attribute deviceTypeList;
+    callback attribute serverList;
+    callback attribute clientList;
+    callback attribute partsList;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    callback attribute featureMap;
+    callback attribute clusterRevision;
+  }
+
+  server cluster OccupancySensing {
+    ram      attribute occupancy;
+    ram      attribute occupancySensorType;
+    ram      attribute occupancySensorTypeBitmap;
+    callback attribute generatedCommandList;
+    callback attribute acceptedCommandList;
+    callback attribute eventList;
+    callback attribute attributeList;
+    callback attribute featureMap;
+    ram      attribute clusterRevision default = 5;
   }
 }
 

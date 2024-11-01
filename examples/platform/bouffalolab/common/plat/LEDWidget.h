@@ -53,6 +53,7 @@ public:
     void SetOnoff(bool state) override;
     void SetLevel(uint8_t level);
     void SetColor(uint8_t level, uint8_t hue, uint8_t sat);
+    void SetLevelTemperature(uint8_t level, uint16_t temperature);
     ~ColorLEDWidget(void) {}
 
     uint8_t light_h;
