@@ -8,7 +8,7 @@ Table of Contents
    * [Install Dependencies](#install-dependencies)
    * [Build App Example](#build-app-example)
    * [Compiled Results](#compiled-results)
-* [Download Inage](#download image)
+* [Download Image](#download-image)
    * [Burn BL706](#burn-bl706)
    * [Firmware for Download](#firmware-for-download)
 * [Control the Night Light](#control-the-night-light)
@@ -81,6 +81,7 @@ From this path: `"./docs_3r/hardware"`, you can download the hardware implementa
 
 
 # Development Environment
+The following steps in this document were validated on Ubuntu 20.04.
 
 ## Install Dependencies
 
@@ -88,8 +89,10 @@ From this path: `"./docs_3r/hardware"`, you can download the hardware implementa
 
 - Clone and initialize the **connectedhomeip** repo
 
+  (base commit a0eafceceb)
   `git clone https://github.com/thirdreality/thread_nightlight.git
   cd thread_nightlight
+  git reset --hard a0eafceceb
   git submodule update --init --recursive
   source ./scripts/activate.sh -p bouffalolab`
 
@@ -109,8 +112,7 @@ From this path: `"./docs_3r/hardware"`, you can download the hardware implementa
 
 ## Compiled Results
 
-​	at ./out directory
-
+​	out/bouffalolab-bl706-night-light-light-easyflash/chip-bl702-lighting-example.bin
 
 
 # Download image
@@ -326,4 +328,4 @@ Then release the key, until the yellow light comes on, indicating that factory r
 
 # Questions and Answers
 
-If you encounter any inconvenience in using our night light products, please refer to <a href="./docs_3r/FAQ/FAQ_3R.md">FAQ</a> for help.
+If you encounter any inconvenience in using our night light products, please refer to <a href="https://github.com/thirdreality/thread_nightlight/blob/master/docs_3r/FAQ/FAQ_3R.md">FAQ</a> for help.
