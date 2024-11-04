@@ -90,8 +90,11 @@ The following steps in this document were validated on Ubuntu 20.04.
 - Clone and initialize the **connectedhomeip** repo
 
   `git clone https://github.com/thirdreality/thread_nightlight.git`
+
   `cd thread_nightlight`
+
   `git submodule update --init --recursive`
+
   `source ./scripts/activate.sh -p bouffalolab`
 
 - Setup build environment for `Bouffalo Lab` SoC
